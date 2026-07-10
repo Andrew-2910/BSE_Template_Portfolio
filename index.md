@@ -54,9 +54,9 @@ A couple challenges in the first milestone is getting to familiarize myself with
 
 For the future, I will be using my CADed objects to create arms for more servos to move up to 3 motors, then 5, then start developing the app.
 
-![Local Screenshot](Screenshot 2026-07-10 112656.png)
-![Local Screenshot](Screenshot 2026-07-10 112647.png)
-![Local Screenshot](Screenshot 2026-07-10 112634.png)
+![Alt Text](Screenshot 2026-07-10 112656.png)
+![Alt Text](Screenshot 2026-07-10 112647.png)
+![Alt Text](Screenshot 2026-07-10 112634.png)
 # Schematics 
 Here's where you'll put images of your schematics. [Tinkercad](https://www.tinkercad.com/blog/official-guide-to-tinkercad-circuits) and [Fritzing](https://fritzing.org/learning/) are both great resoruces to create professional schematic diagrams, though BSE recommends Tinkercad becuase it can be done easily and for free in the browser. 
 
