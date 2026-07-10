@@ -54,8 +54,11 @@ A couple challenges in the first milestone is getting to familiarize myself with
 
 For the future, I will be using my CADed objects to create arms for more servos to move up to 3 motors, then 5, then start developing the app.
 
+Base for NEMA: 
 ![Alt Text](base.jpg)
+Mount for MG996R
 ![Alt Text](base2.jpg)
+Custom Servo Horn
 ![Alt Text](arm.jpg)
 # Schematics 
 Here's where you'll put images of your schematics. [Tinkercad](https://www.tinkercad.com/blog/official-guide-to-tinkercad-circuits) and [Fritzing](https://fritzing.org/learning/) are both great resoruces to create professional schematic diagrams, though BSE recommends Tinkercad becuase it can be done easily and for free in the browser. 
