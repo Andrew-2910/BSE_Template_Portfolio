@@ -65,17 +65,149 @@ Here's where you'll put images of your schematics. [Tinkercad](https://www.tinke
 
 # Code
 Here's where you'll put your code. The syntax below places it into a block of code. Follow the guide [here]([url](https://www.markdownguide.org/extended-syntax/)) to learn how to customize it to your project needs. 
-
+Milestone 1
 ```c++
-void setup() {
-  // put your setup code here, to run once:
+/*#include <Servo.h>
+#include <AccelStepper.h>
+
+const int stepPin = 3;
+const int dirPin = 2;
+
+const int servLPin = 9;
+const int servRPin = 8;
+const int nemaLPin = 7;
+const int nemaRPin = 6;
+
+// "1" tells the library you are using a dedicated driver (like the A4988)
+AccelStepper motor(1, stepPin, dirPin);
+Servo myMotor;
+int servoAngle = 90;
+
+void setup() {  
+  // Set the maximum speed and acceleration
+  pinMode(servLPin, INPUT_PULLUP);
+  pinMode(servRPin, INPUT_PULLUP);
+  pinMode(nemaLPin, INPUT_PULLUP);
+  pinMode(nemaRPin, INPUT_PULLUP);
+  motor.setMaxSpeed(400);
+  motor.setAcceleration(200);// put your setup code here, to run once:
+  myMotor.attach(4);
+  myMotor.write(servoAngle); // moving to initial starting position
   Serial.begin(9600);
-  Serial.println("Hello World!");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  int ServoState_L = digitalRead(servLPin);
+  int ServoState_R = digitalRead(servRPin);
+  int NemaState_L = digitalRead(nemaLPin);
+  int NemaState_R = digitalRead(nemaRPin);
+  if (NemaState_R == LOW) {
+    motor.setSpeed(200);
+    Serial.println("NemaState_R"); // Positive speed = Clockwise
+  } 
+  else if (NemaState_L == LOW){
+    motor.setSpeed(-200);
+    Serial.println("NemaState_L"); // Negative speed = Counter-Clockwise
+  }
+  else {
+    motor.setSpeed(0);
+    Serial.println("nothing");
+  }
+  if (ServoState_R == LOW){
+    if (servoAngle < 180){
+      Serial.println("ServoState_R");
+      servoAngle +=1;
+      myMotor.write(servoAngle);
+      delay(500);
+    }
+    else{
+      Serial.println("SERVO_GLITCH");
+      delay(500);
+    }
+  }
+  else if (ServoState_L == LOW){
+    if (servoAngle > 0){
+      Serial.println("ServoState_L");
+      servoAngle -= 1;
+      myMotor.write(servoAngle);
+      delay(500);
+    }
+    else{
+      Serial.println("SERVO_GLITCH");
+      delay(500);
+    }
+  }
+  // This must be called constantly in loop() to keep the motor moving
+  motor.runSpeed();
+}
+*/
+#include <Servo.h>
+#include <AccelStepper.h>
 
+const int stepPin = 3;
+const int dirPin = 2;
+
+const int servLPin = 9;
+const int servRPin = 8;
+const int nemaLPin = 7;
+const int nemaRPin = 6;
+
+AccelStepper motor(1, stepPin, dirPin);
+Servo myMotor;
+
+int servoAngle = 90;
+unsigned long lastServoMove = 0;
+const int servoDelay = 15; // Controls how fast the servo sweeps (in milliseconds)
+
+void setup() {  
+  pinMode(servLPin, INPUT_PULLUP);
+  pinMode(servRPin, INPUT_PULLUP);
+  pinMode(nemaLPin, INPUT_PULLUP);
+  pinMode(nemaRPin, INPUT_PULLUP);
+  
+  motor.setMaxSpeed(600);
+  motor.setAcceleration(300);
+  
+  myMotor.attach(4);
+  myMotor.write(servoAngle); 
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  int ServoState_L = digitalRead(servLPin);
+  int ServoState_R = digitalRead(servRPin);
+  int NemaState_L = digitalRead(nemaLPin);
+  int NemaState_R = digitalRead(nemaRPin);
+
+  // --- STEPPER MOTOR CONTROL ---
+  if (NemaState_R == LOW) { 
+    motor.setSpeed(300); // Clockwise
+  } 
+  else if (NemaState_L == LOW){ 
+    motor.setSpeed(-300); // Counter-Clockwise
+  }
+  else {
+    motor.setSpeed(0); // Stop when no buttons pressed
+  }
+
+  // --- SERVO MOTOR CONTROL (Non-blocking) ---
+  if (millis() - lastServoMove >= servoDelay) {
+    if (ServoState_R == LOW && servoAngle < 180){
+      servoAngle += 1;
+      myMotor.write(servoAngle);
+      lastServoMove = millis();
+    }
+    else if (ServoState_L == LOW && servoAngle > 0){
+      servoAngle -= 1;
+      myMotor.write(servoAngle);
+      lastServoMove = millis();
+    }
+  }
+
+  // Keep the stepper motor moving smoothly
+  motor.runSpeed();
 }
 ```
 
@@ -98,8 +230,6 @@ Don't forget to place the link of where to buy each component inside the quotati
 
 # Other Resources/Examples
 One of the best parts about Github is that you can view how other people set up their own work. Here are some past BSE portfolios that are awesome examples. You can view how they set up their portfolio, and you can view their index.md files to understand how they implemented different portfolio components.
-- [Example 1](https://trashytuber.github.io/YimingJiaBlueStamp/)
-- [Example 2](https://sviatil0.github.io/Sviatoslav_BSE/)
-- [Example 3](https://arneshkumar.github.io/arneshbluestamp/)
+- https://www.youtube.com/watch?v=Q-UeYEpwXXU
 
 To watch the BSE tutorial on how to create a portfolio, click here.
