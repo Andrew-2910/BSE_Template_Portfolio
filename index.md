@@ -37,6 +37,10 @@ For your final milestone, explain the outcome of your project. Key details to in
 
 This milestone is the most difficult of all three. For this milestone my goal was to code the trigonometry calculations for three motors/servos to work together to get to a certain point in the x,y,z axis. I initially planned to find a library online to get all the math done for me, called NocKinematics. However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab). The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
 
+![Alt Text](base.jpg)
+
+
+
 For your second milestone, explain what you've worked on since your previous milestone. You can highlight:
 - Technical details of what you've accomplished and how they contribute to the final goal
 - What has been surprising about the project so far
@@ -54,13 +58,9 @@ The final product for my project is a 5 axis industrial robotic arm that can be 
 A couple challenges in the first milestone is getting to familiarize myself with the electrical components and the Arduino IDE. It is my first time working with electronic components and coding in C++, so I struggled with my breadboard since there were many accidental open-circuits and a lot of errors/bugs in my code because of logic traps and missing semicolons. Thankfully the BSE instructors and YouTube exists to help me understand electronics and arduino better. Another challenge I faced was getting the right measurements for the basic mount sketches for the servos/motor. To find accurate enough measurements, I searched the internet for the MG996R servo measurements as well as the NEMA17 motor measurements. My first few attempts for creating these mounts failed due to physical constraints. The annoying part for the MG996R mount was that the wiring sticks out of the casing quite a bit, so I couldn't just cut a rectangular hole in a rectangular prism. To fix this I left one side open so the servo can slide in nicely, completely ignoring the wire. The NEMA17 motor had its own unique problems. I couldn't find a precise enough measurement for the motor axle to make a part that can easily slide onto the axle while not sliding around in extra space. Even though I offsetted the hole in my CAD, the measurements were still not right and the hole was often too small for the motor axle. To fix this, I decided to ignore offsetting completely and make the inner hole that connects to the NEMA first larger than the outer one by chamfering it. This makes inserting the base onto the motor axle easy but since the hole in the base gets smaller, it ensures a tight fit on the top.
 
 For the future, I will be using my CADed objects to create arms for more servos to move up to 3 motors, then 5, then start developing the app.
-
-Base for NEMA: 
-![Alt Text](base.jpg)
-Mount for MG996R
-![Alt Text](base2.jpg)
-Custom Servo Horn
-![Alt Text](arm.jpg)
+| **Base for the NEMA** | **Mount for the MG996R servo** | **Custom Servo Horn** |
+|:--:|:--:|:--:|
+| ![Alt Text](base.jpg) | ![Alt Text](base2.jpg) | ![Alt Text](arm.jpg) |
 # Schematics 
 Here's where you'll put images of your schematics. [Tinkercad](https://www.tinkercad.com/blog/official-guide-to-tinkercad-circuits) and [Fritzing](https://fritzing.org/learning/) are both great resoruces to create professional schematic diagrams, though BSE recommends Tinkercad becuase it can be done easily and for free in the browser. 
 
