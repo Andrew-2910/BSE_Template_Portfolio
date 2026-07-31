@@ -16,6 +16,215 @@ My project is an industrial five axes robotic arm that can be controlled with an
 
 For the final milestone, I started working on the blynk app and the stabilizer code for the wrist joint. Since the overall structure of the five axis robotic arm was complete, I decided to solely focus on the app and the code. The formula for the code of the wrist was easy enough. The formula for a stabilizer of the wrist is shown below, with the angle for the servo equivalent to the angle relative to the ground subtracting the rest of the servo angles relative to the mounting position. I also then added 90 degrees since mg996r servos have a range of 0-180 and can't go negative, or 0-270/360 depending on which type you use. 
 
+![Alt Text](IMG_4566.jpg)
+
+# Code
+Combined with the calculations variable, the final code assembly was almost done. However, a major challenge I discovered was that the motors were vibrating extremely unstably. To fix this, you have to go to the Accelstepper library file look into the src to get the Accelstepper.cpp. When clicked on, a document shows up with a line of code showing the speed of the motors. By dividing the original value by 100, the motors sacrificed speed for stability, solving the issue.
+
+For the blynk app, I created an account, imported the authentication token and ID into the IDE, and mimicked the code inputs of the Arduino pins as data streams. Then, convert the button presses into detecting the blynk pins instead of the arduino ones.
+
+![Alt Text](datastreams.jpg)
+![Alt Text](blynk.jpg)
+
+Overall, the final version of the code looks something like this:
+
+```c++
+#define BLYNK_TEMPLATE_ID "TMPL2yiEx1ynl"
+#define BLYNK_TEMPLATE_NAME "Robotic Arm"
+#define BLYNK_AUTH_TOKEN "X_9BIgx9QAXB9089_V1zSDwg0WPkKHlz"
+#include <WiFiS3.h>
+#include <AccelStepper.h>
+#include <Servo.h>
+#include <math.h>
+#include <BlynkSimpleWifi.h>
+
+//char ssid[] = "22000_RollingHills_Eero";
+//char pass[] = "northstar";
+
+char ssid[] = "J11";
+char pass[] = "Blue@J11";
+
+const int stepPin = 3;
+const int dirPin = 2;
+
+const int shoulderPin = 4;
+const int elbowPin = 5;
+const int wristPin = 6;
+
+// Button states coming from the Blynk app
+int BASE_CW = 0;     // V0
+int BASE_CCW = 0;    // V1
+int HORIZ_OUT = 0;   // V2
+int HORIZ_IN = 0;    // V3
+int VERT_UP = 0;     // V4
+int VERT_DOWN = 0;   // V5
+int PITCH_UP = 0;    // V6
+int PITCH_DOWN = 0;  // V7
+unsigned long runCount = 0;
+
+// Timing variables for smooth, non-blocking execution
+unsigned long lastMoveTime = 0;
+const unsigned long moveInterval = 20;  // Run movement math every 30 milliseconds
+
+// Miscellaneous variables
+double Smoothness = 0.2;
+double Stepper_Smoothness = 2.0;
+double Wrist_smoothness = 2.0;
+
+double Shoulder_angle = 90.0;
+double Elbow_angle = 0.0;
+double Wrist_angle = 180.0;
+double Wrist_target = 90.0;
+
+double L1 = 13.432;  // cm
+double L2 = 13.467;  // cm
+double MaxReach = L1 + L2;
+double MinReach = 1.5;
+
+double rotation = 0.0;
+double radius = 0.0;
+double height = MaxReach - 1.0;  // Start slightly below absolute max to prevent instant lock
+
+AccelStepper motor(1, stepPin, dirPin);
+
+Servo shoulderServo;
+Servo elbowServo;
+Servo wristServo;
+
+BLYNK_WRITE(V0) {
+  BASE_CW = param.asInt();
+}
+BLYNK_WRITE(V1) {
+  BASE_CCW = param.asInt();
+}
+BLYNK_WRITE(V2) {
+  HORIZ_OUT = param.asInt();
+}
+BLYNK_WRITE(V3) {
+  HORIZ_IN = param.asInt();
+}
+BLYNK_WRITE(V4) {
+  VERT_UP = param.asInt();
+}
+BLYNK_WRITE(V5) {
+  VERT_DOWN = param.asInt();
+}
+BLYNK_WRITE(V6) {
+  PITCH_UP = param.asInt();
+}
+BLYNK_WRITE(V7) {
+  PITCH_DOWN = param.asInt();
+}
+
+void calculations(double desired_x, double desired_y, double desired_z, double L1, double L2) {
+  double HyptnsT = sqrt((desired_x * desired_x) + (desired_y * desired_y));
+  double Phi = atan2(desired_z, HyptnsT) * (180 / PI);
+  double HyptnsS = sqrt((HyptnsT * HyptnsT) + (desired_z * desired_z));
+  double a = ((HyptnsS * HyptnsS) + (L1 * L1) - (L2 * L2)) / (2 * L1 * HyptnsS);
+
+  a = constrain(a, -1.0, 1.0);
+  double Theta = acos(a) * (180 / PI);
+  Shoulder_angle = Phi + Theta;
+  double a1 = ((L2 * L2) + (L1 * L1) - (HyptnsS * HyptnsS)) / (2 * L1 * L2);
+  a1 = constrain(a1, -1.0, 1.0);
+  Elbow_angle = acos(a1) * (180 / PI);
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(10);
+  Serial.println("Connecting to Blynk...");
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  Serial.println("Connected!");
+
+  motor.setMaxSpeed(300);  // Increased speed slightly for smoother response
+  motor.setAcceleration(300);
+  motor.setCurrentPosition(0);
+
+  shoulderServo.attach(shoulderPin);
+  elbowServo.attach(elbowPin);
+  wristServo.attach(wristPin);
+
+  // Initialize position
+  double desired_x = radius * cos(rotation * PI / 180.0);
+  double desired_y = radius * sin(rotation * PI / 180.0);
+  double desired_z = height;
+
+  calculations(desired_x, desired_y, desired_z, L1, L2);
+
+  Shoulder_angle = constrain(Shoulder_angle, 0, 180);
+  Elbow_angle = constrain(Elbow_angle, 0, 180);
+
+  shoulderServo.write(Shoulder_angle);
+  elbowServo.write(Elbow_angle);
+  Wrist_angle = constrain(Wrist_target - Elbow_angle - Shoulder_angle + 90, 0, 180);
+  wristServo.write(Wrist_angle);
+}
+
+void loop() {
+  Blynk.run();
+  motor.run();  // Keeps stepper moving smoothly by running unthrottled every loop iteration
+
+  // Only evaluate controls and servo angles at a defined millisecond interval
+  if (millis() - lastMoveTime >= moveInterval) {
+    lastMoveTime = millis();
+
+    // Cache the previous positions in case the new inputs break geometry rules
+    double next_rotation = rotation;
+    double next_radius = radius;
+    double next_height = height;
+    double next_wrist_target = Wrist_target;
+
+    if (BASE_CW == 1) { next_rotation += Stepper_Smoothness; }
+    if (BASE_CCW == 1) { next_rotation -= Stepper_Smoothness; }
+    if (HORIZ_OUT == 1) { next_radius += Smoothness; }
+    if (HORIZ_IN == 1) { next_radius -= Smoothness; }
+    if (VERT_UP == 1) { next_height += Smoothness; }
+    if (VERT_DOWN == 1) { next_height -= Smoothness; }
+    if (PITCH_UP == 1) { next_wrist_target += Wrist_smoothness; }
+    if (PITCH_DOWN == 1) { next_wrist_target -= Wrist_smoothness; }
+
+    // Test reach geometry before applying updates
+    double currentReach = sqrt(next_radius * next_radius + next_height * next_height);
+    if (currentReach >= MinReach && currentReach <= MaxReach) {
+      // Commit changes if boundaries pass
+      rotation = next_rotation;
+      radius = next_radius;
+      height = next_height;
+      Wrist_target = next_wrist_target;
+
+      double desired_x = radius * cos(rotation * PI / 180.0);
+      double desired_y = radius * sin(rotation * PI / 180.0);
+      double desired_z = height;
+
+      calculations(desired_x, desired_y, desired_z, L1, L2);
+
+      Shoulder_angle = constrain(Shoulder_angle, 0, 180);
+      Elbow_angle = constrain(Elbow_angle, 0, 180);
+
+      motor.moveTo(rotation / 1.8);
+      shoulderServo.write(Shoulder_angle);
+      elbowServo.write(Elbow_angle);
+
+      Wrist_angle = Wrist_target - Elbow_angle - Shoulder_angle + 90;
+      Wrist_angle = 180 - constrain(Wrist_angle, 0, 180);
+      wristServo.write(Wrist_angle);
+    }
+    // If out of bounds, variables hold their previous safe states completely intact
+  }
+
+  runCount++;
+  if (runCount % 5000 == 0) {
+    Serial.print("rot: ");
+    Serial.print(rotation);
+    Serial.print("  rad: ");
+    Serial.print(radius);
+    Serial.print("  h: ");
+    Serial.println(height);
+  }
+}
+
+```
 
 # Second Milestone
 
@@ -25,7 +234,7 @@ This milestone is the most difficult of all three. For this milestone my goal wa
 # The Hardware
 To save time and consider future planning, I decided to cad the entire structure of the arm, even though I am only coding for joints 1-3. Because the shoulder joint couldn't handle the weight of the rest of the arm, I added another servo to double the torque and to sync both servos together I used a gearbox and connected them to the same pin on the Arduino. To start planning for the future, I switched my original plan of the esp32 NANO into a Arduino R4. This way I can more easily make an app for milestone 3.
 
-![Alt Text](finalArm.jpg)
+![Alt Text](gearbox.jpg)
 
 # The Software
 I initially planned to find a library online to get all the math/angle calculations done for me (called NocKinematics). However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab) and code it by myself. This turns out to be an extremely long process that not only surprised me in the The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
