@@ -1,17 +1,10 @@
 # 5 axes robotic arm
-My project is an industrial five axes robotic arm that can be controlled with an app on your phone with only a couple sliders. It will be using an arduino nano esp32, a NEMA17 motor for the base rotation, and several +servos for the rest of the joints and claw.
-
-You should comment out all portions of your portfolio that you have not completed yet, as well as any instructions:
-```HTML 
-<!--- This is an HTML comment in Markdown -->
-<!--- Anything between these symbols will not render on the published site -->
-```
+My project is an industrial five axes robotic arm that can be controlled with an app on your phone with only a couple sliders. It will be using an arduino nano esp32, a NEMA17 motor for the base rotation, and several +servos for the rest of the joints.
 
 | **Engineer** | **School** | **Area of Interest** | **Grade** |
 |:--:|:--:|:--:|:--:|
 | Andrew L | Pinewood | Electrical Engineering | Incoming Sophomore
 
-**Replace the BlueStamp logo below with an image of yourself and your completed project. Follow the guide [here](https://tomcam.github.io/least-github-pages/adding-images-github-pages-site.html) if you need help.**
 
 ![Headstone Image](logo.svg)
   
@@ -35,18 +28,42 @@ For your final milestone, explain the outcome of your project. Key details to in
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/YNSU6eJ5oP0?si=e27gH-r2nrB0m9gB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-This milestone is the most difficult of all three. For this milestone my goal was to code the trigonometry calculations for three motors/servos to work together to get to a certain point in the x,y,z axis. I initially planned to find a library online to get all the math done for me, called NocKinematics. However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab). The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
+This milestone is the most difficult of all three. For this milestone my goal was to code the trigonometry calculations for three motors/servos/axis to work together to get to a certain point in the x,y,z axis as well as cad the entire arm. 
+# The Hardware
+To save time and consider future planning, I decided to cad the entire structure of the arm, even though I am only coding for joints 1-3. Because the shoulder joint couldn't handle the weight of the rest of the arm, I added another servo to double the torque and to sync both servos together I used a gearbox and connected them to the same pin on the Arduino. To start planning for the future, I switched my original plan of the esp32 NANO into a Arduino R4. This way I can more easily make an app for milestone 3.
 
-![Alt Text](base.jpg)
+# Arm:
 
 
+# The Software
+I initially planned to find a library online to get all the math/angle calculations done for me (called NocKinematics). However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab) and code it by myself. This turns out to be an extremely long process that not only surprised me in the The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
 
-For your second milestone, explain what you've worked on since your previous milestone. You can highlight:
-- Technical details of what you've accomplished and how they contribute to the final goal
-- What has been surprising about the project so far
-- Previous challenges you faced that you overcame
-- What needs to be completed before your final milestone 
+![Alt Text](IMG_4564.jpg)
 
+From this information we can then further calculate the lengths of the pink and green triangles using the Pythagorean theorem. We can also calculate the angle phi using arctan for future reference. These lengths will be essential for calculating the angles later on.
+
+![Alt Text](IMG_4565.jpg)
+
+To actually calculate the angles for all the servos and arm, we need to focus solely on the green triangle. This green triangle is perfect for calculating the angle of only one arm. However, because we have 3 joints, we need to split this arm into two parts to calculate. This adds another triangle which I drew as red. The measurements we already know in this schematic are the given lengths of x1 and x2, as we can measure physically. We also know angle phi, hypotenuse l, and length z. To solve for a1 and a2, we need to fist solve angle theta (in blue). To do so we can use the law of cosine, after which we can then add this value to phi to get the angle a1, the angle for the shoulder joint. a2 can also be calculated using law of cosine.
+
+![Alt Text](IMG_4567.jpg)
+
+With this math completed for 3 axis, we can then convert it into a function in the code that takes in the desired x, y, and z values as well as the arm lengths.
+```c++
+void calculations(double desired_x, double desired_y, double desired_z, double L1, double L2) {
+  double HyptnsT = sqrt((desired_x * desired_x) + (desired_y * desired_y));
+  double Phi = atan2(desired_z, HyptnsT) * (180 / PI);
+  double HyptnsS = sqrt((HyptnsT * HyptnsT) + (desired_z * desired_z));
+  double a = ((HyptnsS * HyptnsS) + (L1 * L1) - (L2 * L2)) / (2 * L1 * HyptnsS);
+
+  a = constrain(a, -1.0, 1.0);
+  double Theta = acos(a) * (180 / PI);
+  Shoulder_angle = Phi + Theta;
+  double a1 = ((L2 * L2) + (L1 * L1) - (HyptnsS * HyptnsS)) / (2 * L1 * L2);
+  a1 = constrain(a1, -1.0, 1.0);
+  Elbow_angle = acos(a1) * (180 / PI);
+}
+```
 # First Milestone
 
 **Don't forget to replace the text below with the embedding for your milestone video. Go to Youtube, click Share -> Embed, and copy and paste the code to replace what's below.**
@@ -57,16 +74,14 @@ The final product for my project is a 5 axis industrial robotic arm that can be 
 
 A couple challenges in the first milestone is getting to familiarize myself with the electrical components and the Arduino IDE. It is my first time working with electronic components and coding in C++, so I struggled with my breadboard since there were many accidental open-circuits and a lot of errors/bugs in my code because of logic traps and missing semicolons. Thankfully the BSE instructors and YouTube exists to help me understand electronics and arduino better. Another challenge I faced was getting the right measurements for the basic mount sketches for the servos/motor. To find accurate enough measurements, I searched the internet for the MG996R servo measurements as well as the NEMA17 motor measurements. My first few attempts for creating these mounts failed due to physical constraints. The annoying part for the MG996R mount was that the wiring sticks out of the casing quite a bit, so I couldn't just cut a rectangular hole in a rectangular prism. To fix this I left one side open so the servo can slide in nicely, completely ignoring the wire. The NEMA17 motor had its own unique problems. I couldn't find a precise enough measurement for the motor axle to make a part that can easily slide onto the axle while not sliding around in extra space. Even though I offsetted the hole in my CAD, the measurements were still not right and the hole was often too small for the motor axle. To fix this, I decided to ignore offsetting completely and make the inner hole that connects to the NEMA first larger than the outer one by chamfering it. This makes inserting the base onto the motor axle easy but since the hole in the base gets smaller, it ensures a tight fit on the top.
 
+# Schematics 
 For the future, I will be using my CADed objects to create arms for more servos to move up to 3 motors, then 5, then start developing the app.
 | **Base for the NEMA** | **Mount for the MG996R servo** | **Custom Servo Horn** |
 |:--:|:--:|:--:|
 | ![Alt Text](base.jpg) | ![Alt Text](base2.jpg) | ![Alt Text](arm.jpg) |
-# Schematics 
-Here's where you'll put images of your schematics. [Tinkercad](https://www.tinkercad.com/blog/official-guide-to-tinkercad-circuits) and [Fritzing](https://fritzing.org/learning/) are both great resoruces to create professional schematic diagrams, though BSE recommends Tinkercad becuase it can be done easily and for free in the browser. 
 
-# Code
-Here's where you'll put your code. The syntax below places it into a block of code. Follow the guide [here]([url](https://www.markdownguide.org/extended-syntax/)) to learn how to customize it to your project needs. 
-Milestone 1
+# Code 
+Milestone 1 code:
 ```c++
 #include <Servo.h>
 #include <AccelStepper.h>
