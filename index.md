@@ -15,7 +15,7 @@ You should comment out all portions of your portfolio that you have not complete
 
 ![Headstone Image](logo.svg)
   
-# Final Milestone
+# Final Milestone 
 
 **Don't forget to replace the text below with the embedding for your milestone video. Go to Youtube, click Share -> Embed, and copy and paste the code to replace what's below.**
 
@@ -33,8 +33,9 @@ For your final milestone, explain the outcome of your project. Key details to in
 
 **Don't forget to replace the text below with the embedding for your milestone video. Go to Youtube, click Share -> Embed, and copy and paste the code to replace what's below.**
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/y3VAmNlER5Y" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/YNSU6eJ5oP0?si=e27gH-r2nrB0m9gB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
+This milestone is the most difficult of all three. For this milestone my goal was to code the trigonometry calculations for three motors/servos to work together to get to a certain point in the x,y,z axis. I initially planned to find a library online to get all the math done for me, called NocKinematics. However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab). The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
 
 For your second milestone, explain what you've worked on since your previous milestone. You can highlight:
 - Technical details of what you've accomplished and how they contribute to the final goal
@@ -46,7 +47,7 @@ For your second milestone, explain what you've worked on since your previous mil
 
 **Don't forget to replace the text below with the embedding for your milestone video. Go to Youtube, click Share -> Embed, and copy and paste the code to replace what's below.**
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/m9uLTFNnOn4?si=FIaAt7WW2jqeKdF3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/m9uLTFNnOn4?si=O1SvCOjb6ifLS_b_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 The final product for my project is a 5 axis industrial robotic arm that can be controlled through an app. My initial idea on how to control it was to create a group of sliders in the app to control the x,y,z values of the tip of the arm. To mimic this idea and transfer it into a prototype, I decided to get another breadboard and have six physical buttons instead of sliders. Two of the six will increase/decrease the value of the x axis, another pair will do the same for the y axis, and another pair for the z axis. However, because it is my first time working with an arduino and C++, I decided to first start off with the base and the arm joint to get some experience (as seen in the video). I cadded a simple base mount for the stepper motor and a mount for the servo. To track motor movement, I CADed a custom servo horn. I also started working on a couple CAD builds to serve as a foundation for future CAD work in Onshape. This included working on a base-mount to connect to the NEMA stepper motor, a mount for the MG996R servos, and custom servo horns to fit the servos. The idea was to have basic mounts for the major elements of my arm with the correct measurements so when I eventually create arms linking motors to motors, I can easily find and copy paste the measurements for the sketch from my foundational CAD sketches.
 
@@ -67,81 +68,6 @@ Here's where you'll put images of your schematics. [Tinkercad](https://www.tinke
 Here's where you'll put your code. The syntax below places it into a block of code. Follow the guide [here]([url](https://www.markdownguide.org/extended-syntax/)) to learn how to customize it to your project needs. 
 Milestone 1
 ```c++
-/*#include <Servo.h>
-#include <AccelStepper.h>
-
-const int stepPin = 3;
-const int dirPin = 2;
-
-const int servLPin = 9;
-const int servRPin = 8;
-const int nemaLPin = 7;
-const int nemaRPin = 6;
-
-// "1" tells the library you are using a dedicated driver (like the A4988)
-AccelStepper motor(1, stepPin, dirPin);
-Servo myMotor;
-int servoAngle = 90;
-
-void setup() {  
-  // Set the maximum speed and acceleration
-  pinMode(servLPin, INPUT_PULLUP);
-  pinMode(servRPin, INPUT_PULLUP);
-  pinMode(nemaLPin, INPUT_PULLUP);
-  pinMode(nemaRPin, INPUT_PULLUP);
-  motor.setMaxSpeed(400);
-  motor.setAcceleration(200);// put your setup code here, to run once:
-  myMotor.attach(4);
-  myMotor.write(servoAngle); // moving to initial starting position
-  Serial.begin(9600);
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  int ServoState_L = digitalRead(servLPin);
-  int ServoState_R = digitalRead(servRPin);
-  int NemaState_L = digitalRead(nemaLPin);
-  int NemaState_R = digitalRead(nemaRPin);
-  if (NemaState_R == LOW) {
-    motor.setSpeed(200);
-    Serial.println("NemaState_R"); // Positive speed = Clockwise
-  } 
-  else if (NemaState_L == LOW){
-    motor.setSpeed(-200);
-    Serial.println("NemaState_L"); // Negative speed = Counter-Clockwise
-  }
-  else {
-    motor.setSpeed(0);
-    Serial.println("nothing");
-  }
-  if (ServoState_R == LOW){
-    if (servoAngle < 180){
-      Serial.println("ServoState_R");
-      servoAngle +=1;
-      myMotor.write(servoAngle);
-      delay(500);
-    }
-    else{
-      Serial.println("SERVO_GLITCH");
-      delay(500);
-    }
-  }
-  else if (ServoState_L == LOW){
-    if (servoAngle > 0){
-      Serial.println("ServoState_L");
-      servoAngle -= 1;
-      myMotor.write(servoAngle);
-      delay(500);
-    }
-    else{
-      Serial.println("SERVO_GLITCH");
-      delay(500);
-    }
-  }
-  // This must be called constantly in loop() to keep the motor moving
-  motor.runSpeed();
-}
-*/
 #include <Servo.h>
 #include <AccelStepper.h>
 
@@ -229,7 +155,6 @@ Don't forget to place the link of where to buy each component inside the quotati
 
 
 # Other Resources/Examples
-One of the best parts about Github is that you can view how other people set up their own work. Here are some past BSE portfolios that are awesome examples. You can view how they set up their portfolio, and you can view their index.md files to understand how they implemented different portfolio components.
-- https://www.youtube.com/watch?v=Q-UeYEpwXXU
+I highly recommend watching this video made by RoTechnic for anyone who wants to do this project using Arduino. He clearly explains the math behind a robotic arm:
 
-To watch the BSE tutorial on how to create a portfolio, click here.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Q-UeYEpwXXU?si=Tji6hTNMiGe0bf7L" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
