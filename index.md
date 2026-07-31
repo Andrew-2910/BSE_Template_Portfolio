@@ -21,6 +21,8 @@ For the final milestone, I started working on the blynk app and the stabilizer c
 # Code
 Combined with the calculations variable, the final code assembly was almost done. However, a major challenge I discovered was that the motors were vibrating extremely unstably. To fix this, you have to go to the Accelstepper library file look into the src to get the Accelstepper.cpp. When clicked on, a document shows up with a line of code showing the speed of the motors. By dividing the original value by 100, the motors sacrificed speed for stability, solving the issue.
 
+![Headstone Image](motor.png)
+
 For the blynk app, I created an account, imported the authentication token and ID into the IDE, and mimicked the code inputs of the Arduino pins as data streams. Then, convert the button presses into detecting the blynk pins instead of the arduino ones.
 
 ![Alt Text](datastreams.jpg)
