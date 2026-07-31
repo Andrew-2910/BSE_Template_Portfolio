@@ -32,8 +32,7 @@ This milestone is the most difficult of all three. For this milestone my goal wa
 # The Hardware
 To save time and consider future planning, I decided to cad the entire structure of the arm, even though I am only coding for joints 1-3. Because the shoulder joint couldn't handle the weight of the rest of the arm, I added another servo to double the torque and to sync both servos together I used a gearbox and connected them to the same pin on the Arduino. To start planning for the future, I switched my original plan of the esp32 NANO into a Arduino R4. This way I can more easily make an app for milestone 3.
 
-# Arm:
-
+![Alt Text](finalArm.jpg)
 
 # The Software
 I initially planned to find a library online to get all the math/angle calculations done for me (called NocKinematics). However, I didn't fully understand the code which made debugging extremely difficult. So, I decided to watch a Youtube video made by RoTechnic to figure out some of the math (Youtube link shared in the resources tab) and code it by myself. This turns out to be an extremely long process that not only surprised me in the The idea is that the arm starts off at either the x-z plane or the y-z plane, and after the base rotation, we create two right triangles to get to our desired/target point. Without any math, we can fill out the following information:
